@@ -1,107 +1,66 @@
 import roll from "../functions/roll";
-beforeEach(() => {});
 
-afterEach(() => {});
-describe("roll", () => {
-  test("by default will roll return a random number between 1 and 6", () => {
+describe("roll function, takes a rollconfig object with the 'num' and 'size' of dice to be rolled. The function generates a random integer between 1 and the specified 'size' 'num' times. returns a", () => {
+  test("when passed a config of 1d6 returns a random number", () => {
     //arrange
+    const config = { size: 6, num: 1 };
     //act
-    const result: number[] = [];
-    for (let i = 0; i < 10; i++) {
-      const newRoll = roll();
-      result.push(newRoll);
-    }
-    //assert
-    for (let i = 0; i < result.length; i++) {
-      expect(result[i]).toBeGreaterThan(0);
-      expect(result[i]).toBeLessThan(7);
-    }
-  });
-  test("if passed a number as an arguement returns a random number between 1 and that number", () => {
-    //arrange
-    const result3: number[] = [];
-    const result20: number[] = [];
-    //act
-    for (let i = 0; i < 10; i++) {
-      const newRoll = roll(20);
-      result20.push(newRoll);
-    }
+
+    jest.spyOn(global.Math, "random").mockReturnValue(0.3);
+    const controlled = roll(config);
+    jest.spyOn(global.Math, "random").mockRestore();
+    //affirm
+    expect(controlled.sum).toBe(2);
 
     for (let i = 0; i < 10; i++) {
-      const newRoll = roll(3);
-      result3.push(newRoll);
-    }
-    //assert
-    for (let i = 0; i < result20.length; i++) {
-      expect(result20[i]).toBeGreaterThan(0);
-      expect(result20[i]).toBeLessThan(20);
-    }
-    for (let i = 0; i < result3.length; i++) {
-      expect(result3[i]).toBeGreaterThan(0);
-      expect(result3[i]).toBeLessThan(4);
+      const randRoll = roll(config).sum;
+      expect(randRoll).toBeGreaterThan(0);
+      expect(randRoll).toBeLessThan(7);
+      expect(randRoll % 1).toBe(0);
     }
   });
-  describe("can be passed a config object", () => {
-    test("config object can specify the number of dice to be rolled", () => {
-      //arrange
-      const config = { dice: 2 };
-      //act
-      const result: number[] = [];
-      for (let i = 0; i < 10; i++) {
-        const newRoll = roll(6, config);
-        result.push(newRoll);
-      }
-      //assert
-      for (let i = 0; i < result.length; i++) {
-        expect(result[i]).toBeGreaterThan(1);
-        expect(result[i]).toBeLessThan(13);
-      }
+  test("when passed a config of 10d6 returns 10 random numbers in the 'dice' array and their sum", () => {
+    //arrange
+    const config = { size: 6, num: 10 };
+    //act
+
+    jest.spyOn(global.Math, "random").mockReturnValue(0.3);
+    const controlled = roll(config);
+    jest.spyOn(global.Math, "random").mockRestore();
+    //affirm
+    expect(controlled.sum).toBe(20);
+
+    const randRoll = roll(config);
+    randRoll.dice.forEach((thisRoll) => {
+      expect(thisRoll).toBeGreaterThan(0);
+      expect(thisRoll).toBeLessThan(7);
+      expect(thisRoll % 1).toBe(0);
     });
-    test("config object can specify a modifier that is added to the result of the roll", () => {
-      //arrange
-      const config1 = { modifiers: 1 };
-      const config2 = { modifiers: -1 };
-      const result: number[] = [];
-      const result2: number[] = [];
-      jest.spyOn(global.Math, "random").mockReturnValue(0.3);
-      //act
-      for (let i = 0; i < 10; i++) {
-        const newRoll = roll(6, config1);
-        result.push(newRoll);
-      }
-      for (let i = 0; i < 10; i++) {
-        const newRoll = roll(6, config2);
-        result2.push(newRoll);
-      }
-      //assert
-      for (let i = 0; i < result.length; i++) {
-        expect(result[i]).toBeGreaterThan(1);
-        expect(result[i]).toBeLessThan(7);
-        expect(result[i]).toBe(3);
-      }
-      for (let i = 0; i < result2.length; i++) {
-        expect(result2[i]).toBeGreaterThan(-1);
-        expect(result2[i]).toBeLessThan(6);
-        expect(result2[i]).toBe(1);
-      }
-      jest.spyOn(global.Math, "random").mockRestore();
+  });
+  test("when passed a config including a modifer adds a the modifer to the to the returned sum", () => {
+    //arrange
+    const config = { size: 6, num: 10, mod: 5 };
+    const config2 = { size: 6, num: 10, mod: -5 };
+    //act
+
+    jest.spyOn(global.Math, "random").mockReturnValue(0.3);
+    const controlled = roll(config);
+    const controlled2 = roll(config2);
+    jest.spyOn(global.Math, "random").mockRestore();
+    //affirm
+    expect(controlled.sum).toBe(25);
+    expect(controlled2.sum).toBe(15);
+
+    const randRoll = roll(config);
+    expect(randRoll.sum).toBeGreaterThan(14);
+    expect(randRoll.sum).toBeLessThan(66);
+    let expectedSum = 0;
+    randRoll.dice.forEach((roll) => {
+      expectedSum += roll;
     });
-    test("config object can specify whether to reroll rolls of 1", () => {
-      //arrange
-      const config1 = { reroll: true } as const;
-      const result: number[] = [];
-      const result2: number[] = [];
-      //act
-      for (let i = 0; i < 10; i++) {
-        const newRoll = roll(6, config1);
-        result.push(newRoll);
-      }
-      //assert
-      console.log(result);
-      for (let i = 0; i < result.length; i++) {
-        expect(result[i]).toBeGreaterThan(0);
-        expect(result[i]).toBeLessThan(7);
-      }
-    });
+    expect(randRoll.sum).toEqual(expectedSum+config.mod);
   });
 });
+
+// jest.spyOn(global.Math, "random").mockReturnValue(0.3);
+// jest.spyOn(global.Math, "random").mockRestore();

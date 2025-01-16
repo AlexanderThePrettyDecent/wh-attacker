@@ -1,35 +1,18 @@
-interface rollConfig {
-  dice?: number;
-  modifiers?: number;
-  reroll?: boolean;
-}
+import { rollConfig, rollRes } from "../types"
 
-function roll(max: number = 6, config?: rollConfig): number {
-  let dice: number = 1;
-  let reroll = false;
-  let modifiers = 0;
-  if (config !== undefined) {
-    if (config.dice) {
-      dice = config.dice;
-    }
-    if (config.modifiers) {
-      modifiers = config.modifiers;
-    }
-    if (config.reroll) {
-      reroll = config.reroll;
-    }
-  }
-  let roll = 0;
-  for (let i = 0; i < dice; i++) {
-    roll += Math.floor(Math.random() * (max - 1)) + 1;
-  }
 
-  console.log(roll);
-  if (reroll && roll === 1) {
-    return (roll += Math.floor(Math.random() * (max - 1)) + 1) + modifiers;
+function roll(config: rollConfig): rollRes {
+  const rolls: number[] = []
+  let sum: number = 0
+  if (config.mod){
+    sum += config.mod
   }
-
-  return roll + modifiers;
+  for (let i = 0; i < config.num; i++){
+    const newRoll: number = Math.floor(Math.random() * (config.size)) + 1
+    sum += newRoll
+    rolls.push(newRoll)
+  }
+  return { sum: sum, dice: rolls };
 }
 
 export default roll;
