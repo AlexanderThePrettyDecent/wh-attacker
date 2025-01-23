@@ -1,12 +1,12 @@
 import roll from "./roll";
 
-import { hitConfig, hitRes } from "../types";
+import { checkConfig, checkRes } from "../types";
 
-function hitRoll(config: hitConfig): hitRes {
-  const rolls = roll({ size: 6, num: config.A });
+function rollCheck(config: checkConfig): checkRes {
+  const rolls = roll({ size: 6, num: config.num });
   let hitCount: number = 0;
   let critCount: number = 0;
-  let hitThresh: number = config.WS;
+  let hitThresh: number = config.dc;
   let rerollCount: number = 0;
   const dice: number[] = [];
   if (config.mod) {
@@ -53,4 +53,4 @@ function hitRoll(config: hitConfig): hitRes {
   };
 }
 
-export default hitRoll;
+export default rollCheck;

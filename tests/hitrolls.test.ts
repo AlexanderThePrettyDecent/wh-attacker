@@ -1,17 +1,17 @@
-import hitRoll from "../functions/hitrolls";
-import { hitConfig } from "../types";
+import rollCheck from "../functions/rollcheck";
+import { checkConfig } from "../types";
 
-describe.only("hitRoll function, takes hitConfig object and returns hitRes object", () => {
+describe.only("rollCheck and woundroll function, takes checkConfig object and returns hitRes object", () => {
   test("when passed a single attack with no modifers or rerolls returns the correct number of hits", () => {
     //arrange
-    const easy = { A: 1, WS: 2 };
-    const hard = { A: 1, WS: 4 };
+    const easy = { num: 1, dc: 2 };
+    const hard = { num: 1, dc: 4 };
     //act
     jest.spyOn(global.Math, "random").mockReturnValue(0.3);
-    const hitResults = hitRoll(easy);
-    const missResults = hitRoll(hard);
+    const hitResults = rollCheck(easy);
+    const missResults = rollCheck(hard);
     jest.spyOn(global.Math, "random").mockRestore();
-    const randResults = hitRoll(hard);
+    const randResults = rollCheck(hard);
     //affirm
     expect(hitResults.hits).toBe(1);
     expect(missResults.hits).toBe(0);
@@ -23,14 +23,14 @@ describe.only("hitRoll function, takes hitConfig object and returns hitRes objec
   });
   test("when passed mutiple attacks with no modifers or rerolls returns the correct number of hits", () => {
     //arrange
-    const easy = { A: 6, WS: 2 };
-    const hard = { A: 6, WS: 4 };
+    const easy = { num: 6, dc: 2 };
+    const hard = { num: 6, dc: 4 };
     //act
     jest.spyOn(global.Math, "random").mockReturnValue(0.3);
-    const hitResults = hitRoll(easy);
-    const missResults = hitRoll(hard);
+    const hitResults = rollCheck(easy);
+    const missResults = rollCheck(hard);
     jest.spyOn(global.Math, "random").mockRestore();
-    const randResults = hitRoll(hard);
+    const randResults = rollCheck(hard);
     //affirm
     expect(hitResults.hits).toBe(6);
     expect(missResults.hits).toBe(0);
@@ -44,15 +44,15 @@ describe.only("hitRoll function, takes hitConfig object and returns hitRes objec
   });
   test("hit rolls of a 6 are counted as crits", () => {
     //arrange
-    const config = { A: 6, WS: 2 };
+    const config = { num: 6, dc: 2 };
     //act
     jest.spyOn(global.Math, "random").mockReturnValue(0.3);
-    const noCritResults = hitRoll(config);
+    const noCritResults = rollCheck(config);
     jest.spyOn(global.Math, "random").mockRestore();
     jest.spyOn(global.Math, "random").mockReturnValue(0.9);
-    const allCritResults = hitRoll(config);
+    const allCritResults = rollCheck(config);
     jest.spyOn(global.Math, "random").mockRestore();
-    const randResults = hitRoll(config);
+    const randResults = rollCheck(config);
     //affirm
     expect(allCritResults.crits).toBe(6);
     expect(noCritResults.crits).toBe(0);
@@ -66,33 +66,33 @@ describe.only("hitRoll function, takes hitConfig object and returns hitRes objec
   });
   test("a modifier can be added to a roll and hits/misses are affected accordingly. Rolls of 6 and 1 always hit or miss respectively, regardless of mod", () => {
     //arrange
-    const passConfig = { A: 6, WS: 3, mod: 1 };
-    const missConfig = { A: 6, WS: 3, mod: -1 };
-    const critConfig = { A: 6, WS: 6, mod: -1 };
-    const critMissConfig = { A: 6, WS: 2, mod: 1 };
+    const passConfig = { num: 6, dc: 3, mod: 1 };
+    const missConfig = { num: 6, dc: 3, mod: -1 };
+    const critConfig = { num: 6, dc: 6, mod: -1 };
+    const critMissConfig = { num: 6, dc: 2, mod: 1 };
     //act
     //hits that would miss when unmodified pass
     jest.spyOn(global.Math, "random").mockReturnValue(0.3);
-    const passResults = hitRoll(passConfig);
+    const passResults = rollCheck(passConfig);
     jest.spyOn(global.Math, "random").mockRestore();
 
     //hits that would pass when unmodified miss
     jest.spyOn(global.Math, "random").mockReturnValue(0.34);
-    const missResults = hitRoll(missConfig);
+    const missResults = rollCheck(missConfig);
     jest.spyOn(global.Math, "random").mockRestore();
 
     //crits ignore modifiers
     jest.spyOn(global.Math, "random").mockReturnValue(0.9);
-    const critResults = hitRoll(critConfig);
+    const critResults = rollCheck(critConfig);
     jest.spyOn(global.Math, "random").mockRestore();
 
     //crit misses ignore modifiers
     jest.spyOn(global.Math, "random").mockReturnValue(0.1);
-    const critMissResults = hitRoll(critMissConfig);
+    const critMissResults = rollCheck(critMissConfig);
     jest.spyOn(global.Math, "random").mockRestore();
 
     //random results
-    const randResults = hitRoll(passConfig);
+    const randResults = rollCheck(passConfig);
 
     //affirm
     expect(passResults.hits).toBe(6);
@@ -102,7 +102,7 @@ describe.only("hitRoll function, takes hitConfig object and returns hitRes objec
 
     let expectedHitSum = 0;
     randResults.dice.forEach((die) => {
-      if (die === 6 || (die + passConfig.mod >= passConfig.WS && die !== 1)) {
+      if (die === 6 || (die + passConfig.mod >= passConfig.dc && die !== 1)) {
         expectedHitSum++;
       }
     });
@@ -111,21 +111,21 @@ describe.only("hitRoll function, takes hitConfig object and returns hitRes objec
   describe("rerolling can be specifed", () => {
     test("will reroll all rolls of 1 if config specifies (controlled)", () => {
       //arrange
-      const config: hitConfig = { A: 6, WS: 2, rerolls: "ones" };
+      const config: checkConfig = { num: 6, dc: 2, rerolls: "ones" };
       //   jest.spyOn(global.Math, "random").mockReturnValue(0.01);
       const dieRoll = jest.spyOn(global.Math, "random").mockReturnValue(0.01);
       //act
-      const results = hitRoll(config);
+      const results = rollCheck(config);
       //affirm
       expect(dieRoll).toHaveBeenCalledTimes(12);
       jest.spyOn(global.Math, "random").mockRestore();
     });
     test("will reroll all rolls of 1 if config specifies (random)", () => {
       //arrange
-      const config: hitConfig = { A: 6, WS: 2, rerolls: "ones" };
+      const config: checkConfig = { num: 6, dc: 2, rerolls: "ones" };
       const newDieRoll = jest.spyOn(global.Math, "random");
       //act
-      const results = hitRoll(config);
+      const results = rollCheck(config);
       //affirm
       let expectedRerolls: number = 0;
       results.diceOriginal.forEach((die) => {
@@ -138,23 +138,23 @@ describe.only("hitRoll function, takes hitConfig object and returns hitRes objec
     });
     test("will reroll all rolls of failures if config specifies (controlled)", () => {
       //arrange
-      const config: hitConfig = { A: 6, WS: 5, rerolls: "full" };
+      const config: checkConfig = { num: 6, dc: 5, rerolls: "full" };
       //   jest.spyOn(global.Math, "random").mockReturnValue(0.01);
       const dieRollsFull = jest
         .spyOn(global.Math, "random")
         .mockReturnValue(0.5);
       //act
-      const results = hitRoll(config);
+      const results = rollCheck(config);
       //affirm
       expect(dieRollsFull).toHaveBeenCalledTimes(12);
       jest.spyOn(global.Math, "random").mockRestore();
     });
     test("will reroll all failures if config specifies (random)", () => {
       //arrange
-      const config: hitConfig = { A: 6, WS: 5, rerolls: "full" };
+      const config: checkConfig = { num: 6, dc: 5, rerolls: "full" };
       const dieRollFullRand = jest.spyOn(global.Math, "random");
       //act
-      const results = hitRoll(config);
+      const results = rollCheck(config);
       //affirm
       let expectedRerolls: number = 0;
       results.diceOriginal.forEach((die) => {
@@ -167,23 +167,23 @@ describe.only("hitRoll function, takes hitConfig object and returns hitRes objec
     });
     test("will reroll all rolls that aren't crits if specified(controlled)", () => {
       //arrange
-      const config: hitConfig = { A: 6, WS: 2, rerolls: "crits" };
-      //   jest.spyOn(global.Math, "random").mockReturnValue(0.01);
+      const config: checkConfig = { num: 6, dc: 2, rerolls: "crits" };
+      
       const dieRollsFull = jest
         .spyOn(global.Math, "random")
         .mockReturnValue(0.68);
       //act
-      const results = hitRoll(config);
+      const results = rollCheck(config);
       //affirm
       expect(dieRollsFull).toHaveBeenCalledTimes(12);
       jest.spyOn(global.Math, "random").mockRestore();
     });
     test("will reroll all rolls that aren't crits if specified(random)", () => {
       //arrange
-      const config: hitConfig = { A: 6, WS: 3, rerolls: "crits" };
+      const config: checkConfig = { num: 6, dc: 3, rerolls: "crits" };
       const dieRollFullRand = jest.spyOn(global.Math, "random");
       //act
-      const results = hitRoll(config);
+      const results = rollCheck(config);
       //affirm
       let expectedRerolls: number = 0;
       results.diceOriginal.forEach((die) => {
